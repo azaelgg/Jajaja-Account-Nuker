@@ -50,7 +50,7 @@ def tokenInfo(token):
             ''')
             input()
     else:
-      print(f"[{Fore.RED}-{Fore.RESET}] Invalid token", e)
+      print(f"[{Fore.RED}-{Fore.RESET}] Invalid token")
       input("Press any key to exit..."); exit(0)
 
 def tokenFuck(token):
