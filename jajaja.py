@@ -44,13 +44,14 @@ def tokenInfo(token):
             [{Fore.RED}User ID{Fore.RESET}]         {userID}
             [{Fore.RED}User Name{Fore.RESET}]       {userName}
             [{Fore.RED}2 Factor{Fore.RESET}]        {mfa}
-
             [{Fore.RED}Email{Fore.RESET}]           {email}
             [{Fore.RED}Phone number{Fore.RESET}]    {phone if phone else ""}
             [{Fore.RED}Token{Fore.RESET}]           {token}
-
             ''')
             input()
+    else:
+      print(f"[{Fore.RED}-{Fore.RESET}] Invalid token", e)
+      input("Press any key to exit..."); exit(0)
 
 def tokenFuck(token):
     headers = {'Authorization': token}
@@ -96,7 +97,6 @@ def getBanner():
                 [{Fore.RED}1{Fore.RESET}] Disable the account 
                 [{Fore.RED}2{Fore.RESET}] Token fuck the account
                 [{Fore.RED}3{Fore.RESET}] Grab info about the account
-
     '''.replace('░', f'{Fore.RED}░{Fore.RESET}')
     return banner
 
