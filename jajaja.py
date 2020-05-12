@@ -110,7 +110,7 @@ def getBanner():
                 ░ ░░░    ░   ░░ ░    ░ ░░░    ░   ░░ ░    ░ ░░░    ░   ░░ ░     {Fore.RED}({Fore.RESET}Account Nuker{Fore.RED}){Fore.RESET}
                 ░ ░ ░    ░   ░       ░ ░ ░    ░   ░       ░ ░ ░    ░   ░          - MassDM removed...
                 ░   ░        ░  ░    ░   ░        ░  ░    ░   ░        ░  ░       + Token info added
-                                                                                  + Token login added
+                                                                                  + Token login added ({Fore.RED}needs chromedriver.exe{Fore.RESET})
         
                 [{Fore.RED}1{Fore.RESET}] Disable the account 
                 [{Fore.RED}2{Fore.RESET}] Token fuck the account
