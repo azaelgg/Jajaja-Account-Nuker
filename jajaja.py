@@ -47,7 +47,7 @@ def tokenLogin(token):
             }, 2500);
             }
             """
-    driver.get("https://discordapp.com/login")
+    driver.get("https://discord.com/login")
     driver.execute_script(script + f'\nlogin("{token}")')
 
 def tokenInfo(token):
