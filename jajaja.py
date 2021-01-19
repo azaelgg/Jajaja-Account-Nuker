@@ -1,17 +1,30 @@
 # Account nuker fixed by https://github.com/iiLeafy
-import threading, requests, discord, random, time, os
+import threading
+import requests
+import discord
+import random
+import time
+import os
+import sys
 
 from colorama import Fore, init
 from selenium import webdriver
 from datetime import datetime
 from itertools import cycle
 
+
 init(convert=True)
 guildsIds = []
 friendsIds = []
 channelIds = []
-clear = lambda: os.system('cls')
+
+
+def clear():
+    return os.system('cls' if 'win' in sys.platform else 'clear')
+
+
 clear()
+
 
 class Login(discord.Client):
     async def on_connect(self):
