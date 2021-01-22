@@ -3,7 +3,6 @@ import threading, requests, discord, random, time, os
 
 from colorama import Fore, init
 from selenium import webdriver
-from datetime import datetime
 from itertools import cycle
 
 init(convert=True)
@@ -15,14 +14,12 @@ clear()
 
 class Login(discord.Client):
     async def on_connect(self):
-        for g in self.guilds:
-            guildsIds.append(g.id)
- 
-        for f in self.user.friends:
-            friendsIds.append(f.id)
-
-        for c in self.private_channels:
-            channelIds.append(c.id)
+        global guildsIds
+        global friendsIds
+        global channelIds
+        guildsIds = [g.id for g in self.guilds]
+        friendsIds = [g.id for g in self.user.friends]
+        channelIds = [g.id for g in self.private_channels]
 
         await self.logout()
 
