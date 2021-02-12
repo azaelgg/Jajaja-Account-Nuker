@@ -1,5 +1,5 @@
 # Jajaja-Account-Nuker
-Account nuker, discord token fucker for discord. (will revamp/fix soon.)
+Account nuker, discord token fucker for discord.
 
 ![preview](https://github.com/azaelgg/Jajaja-Account-Nuker/blob/master/jajaja.png?raw=true)
 
