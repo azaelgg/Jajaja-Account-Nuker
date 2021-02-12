@@ -1,6 +1,8 @@
 # Jajaja-Account-Nuker
 Account nuker, discord token fucker for discord. (will revamp/fix soon.)
 
+![preview](https://github.com/azaelgg/Jajaja-Account-Nuker/blob/master/jajaja.png?raw=true)
+
   
 # Legality
 
